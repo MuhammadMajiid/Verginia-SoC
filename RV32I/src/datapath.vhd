@@ -4,16 +4,17 @@ use IEEE.NUMERIC_STD.all;
 entity datapath is
   port
   (
-    clk, reset           : in std_logic;
+    clk           : in std_logic;
+    reset         : in std_logic; -- Active Low
     ResultSrc            : in std_logic_vector(1 downto 0);
     PCSrc, ALUSrc        : in std_logic;
     RegWrite             : in std_logic;
     ImmSrc               : in std_logic_vector(1 downto 0);
     ALUControl           : in std_logic_vector(2 downto 0);
     Zero                 : out std_logic;
-    PC                   : buffer std_logic_vector(31 downto 0);
+    PC                   : out std_logic_vector(31 downto 0);
     Instr                : in std_logic_vector(31 downto 0);
-    ALUResult, WriteData : buffer std_logic_vector(31 downto 0);
+    ALUResult, WriteData : out std_logic_vector(31 downto 0);
     ReadData             : in std_logic_vector(31 downto 0));
 end;
 architecture struct of datapath is
@@ -68,22 +69,27 @@ architecture struct of datapath is
     (
       a, b       : in std_logic_vector(31 downto 0);
       ALUControl : in std_logic_vector(2 downto 0);
-      ALUResult  : buffer std_logic_vector(31 downto 0);
+      ALUResult  : out std_logic_vector(31 downto 0);
       Zero       : out std_logic);
   end component;
   signal PCNext, PCPlus4, PCTarget : std_logic_vector(31 downto 0);
   signal ImmExt                    : std_logic_vector(31 downto 0);
   signal SrcA, SrcB                : std_logic_vector(31 downto 0);
   signal Result                    : std_logic_vector(31 downto 0);
+  signal ALUResult_W                    : std_logic_vector(31 downto 0);
+  signal WriteData_W                    : std_logic_vector(31 downto 0);
+  signal PC_W                    : std_logic_vector(31 downto 0);
+
 begin
   -- next PC logic
+  PC <= PC_W; 
   pcreg : flopr generic
   map(32) port map
-  (clk, reset, PCNext, PC);
+  (clk, reset, PCNext, PC_W);
   pcadd4 : adder port
-  map(PC, X"00000004", PCPlus4);
+  map(PC_W, X"00000004", PCPlus4);
   pcaddbranch : adder port
-  map(PC, ImmExt, PCTarget);
+  map(PC_W, ImmExt, PCTarget);
   pcmux : mux2 generic
   map(32) port
   map(PCPlus4, PCTarget, PCSrc,
@@ -92,19 +98,21 @@ begin
   rf : regfile port
   map(clk, RegWrite, Instr(19 downto 15),
   Instr(24 downto 20), Instr(11 downto 7),
-  Result, SrcA, WriteData);
+  Result, SrcA, WriteData_W);
+  WriteData <= WriteData_W;
   ext : extend port
   map(Instr(31 downto 7), ImmSrc, ImmExt);
   -- ALU logic
   srcbmux : mux2 generic
   map(32) port
-  map(WriteData, ImmExt,
+  map(WriteData_W, ImmExt,
   ALUSrc, SrcB);
   mainalu : alu port
-  map(SrcA, SrcB, ALUControl, ALUResult, Zero);
+  map(SrcA, SrcB, ALUControl, ALUResult_W, Zero);
+  ALUResult <= ALUResult_W;
   resultmux : mux3 generic
   map(32) port
-  map(ALUResult, ReadData,
+  map(ALUResult_W, ReadData,
   PCPlus4, ResultSrc,
   Result);
 end;

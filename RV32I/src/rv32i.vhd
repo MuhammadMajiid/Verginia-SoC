@@ -3,7 +3,8 @@ use IEEE.STD_LOGIC_1164.all;
 entity rv32i is
   port
   (
-    clk, reset           : in std_logic;
+    clk           : in std_logic;
+    reset         : in std_logic; -- Active Low
     PC                   : out std_logic_vector(31 downto 0);
     Instr                : in std_logic_vector(31 downto 0);
     MemWrite             : out std_logic;

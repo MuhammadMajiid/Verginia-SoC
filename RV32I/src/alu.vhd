@@ -12,7 +12,7 @@ architecture rtl of alu is
   -- signal ops : std_logic_vector(2 downto 0):="000";
   signal ALUResult_uns : unsigned(31 downto 0);
 begin
-  process (a,b,ALUControl)
+  process (a,b,ALUControl,ALUResult_uns)
   begin
     case ALUControl is
       when "000" =>

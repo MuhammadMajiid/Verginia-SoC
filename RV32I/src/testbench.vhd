@@ -26,9 +26,9 @@ begin
     end process;
     -- generate reset for first two clock cycles
       process begin
-        reset <= '1';
-        wait for 22 ns;
         reset <= '0';
+        wait for 22 ns;
+        reset <= '1';
         wait;
       end process;
       -- check that 25 gets written to address 100 at end of program

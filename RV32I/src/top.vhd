@@ -4,11 +4,13 @@ use IEEE.NUMERIC_STD.all;
 entity top is
   port
   (
-    clk, reset         : in std_logic;
-    WriteData, DataAdr : buffer std_logic_vector(31 downto 0);
-    MemWrite           : buffer std_logic);
-end;
-architecture test of top is
+    clk           : in std_logic;
+    reset         : in std_logic; -- Active Low
+--    WriteData, DataAdr : out std_logic_vector(31 downto 0);
+    MemWrite           : out std_logic
+);
+end top;
+architecture structure of top is
   component rv32i
     port
     (
@@ -33,16 +35,21 @@ architecture test of top is
       rd      : out std_logic_vector(31 downto 0));
   end component;
   signal PC, Instr, ReadData : std_logic_vector(31 downto 0);
+  signal WriteData_W, DataAdr_W : std_logic_vector(31 downto 0);
+  signal MemWrite_W          : std_logic;
 begin
   -- instantiate processor and memories
   rvsingle : rv32i port map
   (
     clk, reset, PC, Instr,
-    MemWrite, DataAdr,
-    WriteData, ReadData);
+    MemWrite_W, DataAdr_W,
+    WriteData_W, ReadData);
   imem1 : imem port
   map(PC, Instr);
   dmem1 : dmem port
-  map(clk, MemWrite, DataAdr, WriteData,
+  map(clk, MemWrite_W, DataAdr_W, WriteData_W,
   ReadData);
-end;
+--  WriteData <= WriteData_W;
+--  DataAdr   <= DataAdr_W;
+  MemWrite  <= MemWrite_W;
+end structure;

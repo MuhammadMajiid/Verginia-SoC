@@ -10,7 +10,7 @@ entity controller is
     MemWrite       : out std_logic;
     PCSrc, ALUSrc  : out std_logic;
     RegWrite       : out std_logic;
-    Jump           : buffer std_logic;
+    Jump           : out std_logic;
     ImmSrc         : out std_logic_vector(1 downto 0);
     ALUControl     : out std_logic_vector(2 downto 0));
 end;
@@ -37,12 +37,14 @@ architecture struct of controller is
   end component;
   signal ALUOp  : std_logic_vector(1 downto 0);
   signal Branch : std_logic;
+  signal Jump_w : std_logic;
 begin
   md : maindec port map
   (
     op, ResultSrc, MemWrite, Branch,
-    ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
+    ALUSrc, RegWrite, Jump_w, ImmSrc, ALUOp);
   ad : aludec port
   map(op(5), funct3, funct7b5, ALUOp, ALUControl);
-  PCSrc <= (Branch and Zero) or Jump;
+  PCSrc <= (Branch and Zero) or Jump_w;
+  Jump <= Jump_w;
 end;
